@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Matters Filter</title>
+
+  <!-- REQUIRED: Grist Plugin API -->
+  <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      padding: 12px;
+    }
+    .filters {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 10px;
+      align-items: end;
+    }
+    label {
+      font-size: 12px;
+      color: #6b7280;
+    }
+    select, button {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: white;
+    }
+    .pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #f3f4f6;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="filters">
+    <div>
+      <label>MTR YEAR</label>
+      <select id="year"></select>
+    </div>
+
+    <div>
+      <label>Status</label>
+      <select id="status"></select>
+    </div>
+
+    <div class="pill" id="count">0 matches</div>
+  </div>
+
+  <script>
+    grist.ready({
+      requiredAccess: "read table",
+      allowSelectBy: true,
+      columns: [
+        { name: "MTR_YEAR", title: "MTR YEAR" },
+        { name: "Status", title: "Status" }
+      ]
+    });
+
+    const yearSel = document.getElementById("year");
+    const statusSel = document.getElementById("status");
+    const countEl = document.getElementById("count");
+
+    let rows = [];
+    let state = { year: "", status: "" };
+
+    function unique(arr) {
+      return [...new Set(arr)].filter(v => v !== "").sort((a,b)=>a-b);
+    }
+
+    function refresh() {
+      const years = unique(rows.map(r => r.MTR_YEAR));
+      const statuses = unique(
+        state.year
+          ? rows.filter(r => r.MTR_YEAR == state.year).map(r => r.Status)
+          : rows.map(r => r.Status)
+      );
+
+      yearSel.innerHTML = `<option value="">All</option>` +
+        years.map(y => `<option value="${y}">${y}</option>`).join("");
+
+      statusSel.innerHTML = `<option value="">All</option>` +
+        statuses.map(s => `<option value="${s}">${s}</option>`).join("");
+
+      yearSel.value = state.year;
+      statusSel.value = state.status;
+
+      apply();
+    }
+
+    function apply() {
+      const ids = rows
+        .filter(r =>
+          (!state.year || r.MTR_YEAR == state.year) &&
+          (!state.status || r.Status == state.status)
+        )
+        .map(r => r.id);
+
+      countEl.textContent = `${ids.length} matches`;
+      grist.setSelectedRows(ids.length ? ids : null);
+    }
+
+    yearSel.onchange = () => {
+      state.year = yearSel.value;
+      refresh();
+    };
+
+    statusSel.onchange = () => {
+      state.status = statusSel.value;
+      apply();
+    };
+
+    grist.onRecords(records => {
+      rows = records.map(r => grist.mapColumnNames(r));
+      refresh();
+    });
+  </script>
+</body>
+</html>
