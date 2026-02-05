@@ -3,41 +3,37 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Matters Filter</title>
+  <title>Filter Matters</title>
 
-  <!-- Grist Plugin API -->
   <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 
   <style>
     :root{
-      /* Light Teal Theme */
-      --page: #eaf7f6;
-      --card: #ffffff;
-      --ink: #0f172a;
-      --muted: #47636b;
-      --teal: #0ea5a4;
-      --teal2:#14b8a6;
-      --ring: rgba(20,184,166,.35);
-      --border: rgba(2,132,126,.18);
-      --shadow: 0 10px 25px rgba(2,132,126,.12);
+      /* Light gray "app" theme */
+      --page: #f3f4f6;          /* bg */
+      --card: #ffffff;          /* card */
+      --ink:  #0f172a;          /* text */
+      --muted:#64748b;          /* labels */
+      --border: rgba(15,23,42,.12);
+      --shadow: 0 8px 18px rgba(15,23,42,.08);
+      --ring: rgba(100,116,139,.35);
 
-      /* Compact sizing: target ~1.5in tall */
-      --pad: 8px;
-      --gap: 8px;
+      /* Slim sizing */
+      --pad: 6px;
+      --gap: 6px;
       --radius: 12px;
-      --controlH: 30px;
+      --controlH: 26px;         /* slimmer controls */
       --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     }
 
-    html, body { height:100%; }
+    html, body { height: 100%; }
     body{
       margin:0;
       font-family: var(--font);
-      background: linear-gradient(180deg, #f2fbfa, var(--page));
+      background: var(--page);
       color: var(--ink);
     }
 
-    /* Keep everything tight */
     .shell{ padding: var(--pad); }
 
     .card{
@@ -45,7 +41,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      overflow:hidden;
+      overflow: hidden;
     }
 
     .topbar{
@@ -53,8 +49,8 @@
       align-items:center;
       justify-content:space-between;
       gap: var(--gap);
-      padding: 8px 10px;
-      background: linear-gradient(90deg, rgba(20,184,166,.14), rgba(14,165,164,.07));
+      padding: 6px 8px;               /* slimmer */
+      background: #fafafa;
       border-bottom: 1px solid var(--border);
     }
 
@@ -62,70 +58,67 @@
       font-weight: 700;
       font-size: 12.5px;
       letter-spacing: .2px;
-      color: #0b3d3f;
     }
 
     .right{
       display:flex;
       align-items:center;
-      gap: 8px;
+      gap: 6px;
       white-space: nowrap;
     }
 
     .pill{
-      font-size: 12px;
-      padding: 3px 10px;
+      font-size: 11.5px;
+      padding: 2px 8px;
       border-radius: 999px;
-      background: rgba(20,184,166,.12);
-      border: 1px solid rgba(20,184,166,.25);
-      color: #0b3d3f;
+      background: #f1f5f9;
+      border: 1px solid rgba(15,23,42,.10);
+      color: #111827;
     }
 
     button{
       height: var(--controlH);
-      padding: 0 10px;
+      padding: 0 8px;
       border-radius: 10px;
-      border: 1px solid rgba(14,165,164,.30);
-      background: rgba(14,165,164,.10);
-      color: #0b3d3f;
-      font-size: 12px;
+      border: 1px solid rgba(15,23,42,.14);
+      background: #f8fafc;
+      color: #111827;
+      font-size: 11.5px;
       cursor:pointer;
     }
-    button:hover{ background: rgba(14,165,164,.14); }
-    button:focus{ outline: none; box-shadow: 0 0 0 3px var(--ring); }
+    button:hover{ background:#f1f5f9; }
+    button:focus{ outline:none; box-shadow: 0 0 0 3px var(--ring); }
 
     .content{
-      padding: 8px 10px 10px;
+      padding: 6px 8px 8px;           /* slimmer */
       display:grid;
       gap: var(--gap);
     }
 
-    /* Two compact rows */
     .row{
       display:grid;
       gap: var(--gap);
-    }
-
-    /* Row 1: Search + Year + Status */
-    .row1{
-      grid-template-columns: 1.6fr 0.7fr 0.7fr;
       align-items:end;
     }
 
-    /* Row 2: Lawyer + Matter Type + (hint) */
-    .row2{
-      grid-template-columns: 1fr 1fr auto;
-      align-items:end;
+    /* Row 1: Year + Status + Lawyer + Type */
+    .rowFilters{
+      grid-template-columns: 0.8fr 0.8fr 1fr 1fr;
+    }
+
+    /* Row 2: Search across full width */
+    .rowSearch{
+      grid-template-columns: 1fr;
     }
 
     .field{
       display:grid;
-      gap: 4px;
+      gap: 3px;                       /* slimmer */
       min-width: 0;
     }
 
     label{
-      font-size: 11px;
+      font-size: 10.75px;
       color: var(--muted);
       line-height: 1;
     }
@@ -133,41 +126,30 @@
     input, select{
       height: var(--controlH);
       border-radius: 10px;
-      border: 1px solid rgba(15,118,110,.22);
-      background: #fbfefe;
-      padding: 0 10px;
-      font-size: 12px;
+      border: 1px solid rgba(15,23,42,.14);
+      background: #ffffff;
+      padding: 0 8px;
+      font-size: 11.5px;
       color: var(--ink);
-      outline: none;
+      outline:none;
       min-width: 0;
     }
 
     input:focus, select:focus{
       box-shadow: 0 0 0 3px var(--ring);
-      border-color: rgba(14,165,164,.55);
-    }
-
-    .hint{
-      font-size: 11px;
-      color: var(--muted);
-      padding-bottom: 2px;
-      justify-self: end;
-      text-align:right;
-      max-width: 220px;
-      line-height: 1.1;
+      border-color: rgba(100,116,139,.45);
     }
 
     .err{
       font-size: 11px;
       color: #b91c1c;
-      margin-top: -4px;
+      margin-top: -2px;
+      min-height: 14px; /* keeps layout stable even when empty */
     }
 
-    /* Make it resilient on smaller widths: wrap to 2 columns */
-    @media (max-width: 520px){
-      .row1{ grid-template-columns: 1fr 1fr; }
-      .row2{ grid-template-columns: 1fr 1fr; }
-      .hint{ justify-self: start; text-align:left; }
+    /* Responsive fallback */
+    @media (max-width: 760px){
+      .rowFilters{ grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
@@ -176,7 +158,7 @@
   <div class="shell">
     <div class="card">
       <div class="topbar">
-        <div class="title">Matters</div>
+        <div class="title">Filter Matters</div>
         <div class="right">
           <span class="pill" id="count">0 matches</span>
           <button id="clearBtn" title="Reset filters">Clear</button>
@@ -184,12 +166,7 @@
       </div>
 
       <div class="content">
-        <div class="row row1">
-          <div class="field">
-            <label for="q">Search (MatterID, Clients, Subject, Subject2)</label>
-            <input id="q" type="search" placeholder="Type to search…" autocomplete="off" />
-          </div>
-
+        <div class="row rowFilters">
           <div class="field">
             <label for="yearSel">Select Matter Year</label>
             <select id="yearSel"></select>
@@ -199,9 +176,7 @@
             <label for="statusSel">Select Matter Status</label>
             <select id="statusSel"></select>
           </div>
-        </div>
 
-        <div class="row row2">
           <div class="field">
             <label for="lawyerSel">Lawyer</label>
             <select id="lawyerSel"></select>
@@ -211,8 +186,13 @@
             <label for="typeSel">Matter Type</label>
             <select id="typeSel"></select>
           </div>
+        </div>
 
-          <div class="hint" id="hint">Loading…</div>
+        <div class="row rowSearch">
+          <div class="field">
+            <label for="q">Search (MatterID, Clients, Subject, Subject2)</label>
+            <input id="q" type="search" placeholder="Type to search…" autocomplete="off" />
+          </div>
         </div>
 
         <div class="err" id="err"></div>
@@ -221,7 +201,7 @@
   </div>
 
   <script>
-    // Request read access; enable "Select By" linking
+    // Init: allow linking + read access
     grist.ready({ requiredAccess: "read table", allowSelectBy: true });
 
     const q = document.getElementById("q");
@@ -230,24 +210,27 @@
     const lawyerSel = document.getElementById("lawyerSel");
     const typeSel = document.getElementById("typeSel");
     const countEl = document.getElementById("count");
-    const hintEl = document.getElementById("hint");
     const errEl = document.getElementById("err");
     const clearBtn = document.getElementById("clearBtn");
 
-    // Data: keep only what we need (fast & memory-friendly)
-    // Expected columns (from your Matters table):
-    // MatterID, Clients, Subject, Subject2, Lawyer, Mtr_Type, MTR_YEAR, Status
-    let rows = [];  // {id, MTR_YEAR, Status, Lawyer, Mtr_Type, _search}
-    let state = {
-      query: "",
-      year: "",
-      status: "",
-      lawyer: "",
-      type: ""
-    };
+    // Keep only what we need + a precomputed search string
+    // Expected keys (based on your earlier debug): MatterID, Clients, Subject, Subject2, Lawyer, Mtr_Type, MTR_YEAR, Status
+    let rows = []; // {id, MTR_YEAR, Status, Lawyer, Mtr_Type, _search}
+    let state = { query:"", year:"", status:"", lawyer:"", type:"" };
 
     function norm(v){ return (v === null || v === undefined) ? "" : String(v); }
     function setErr(msg){ errEl.textContent = msg || ""; }
+
+    function uniq(arr){
+      const s = new Set(arr.map(norm));
+      return [...s].filter(v => v !== "");
+    }
+    function sortYears(years){
+      return years.map(Number).filter(n => !Number.isNaN(n)).sort((a,b)=>b-a).map(String);
+    }
+    function sortAlpha(items){
+      return items.sort((a,b)=>a.localeCompare(b, undefined, { sensitivity:"base" }));
+    }
 
     function fillSelect(sel, items, selected, allLabel){
       sel.innerHTML = "";
@@ -259,45 +242,30 @@
       items.forEach(v => {
         const o = document.createElement("option");
         o.value = v;
-        o.textContent = v === "" ? "(blank)" : v;
+        o.textContent = v;
         sel.appendChild(o);
       });
 
       sel.value = selected || "";
     }
 
-    function uniq(arr){
-      const s = new Set(arr.map(norm));
-      return [...s].filter(v => v !== "");
-    }
-
-    function sortYears(years){
-      return years
-        .map(v => Number(v))
-        .filter(n => !Number.isNaN(n))
-        .sort((a,b) => b-a)           // newest first
-        .map(String);
-    }
-
-    function sortAlpha(items){
-      return items.sort((a,b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
-    }
-
-    function chooseDefaultsIfEmpty(){
-      // default year = current year if present
+    // Defaults: current year + Active, if available
+    function applyDefaultsIfEmpty(){
       if (!state.year){
         const currentYear = String(new Date().getFullYear());
         const years = new Set(rows.map(r => norm(r.MTR_YEAR)));
         if (years.has(currentYear)) state.year = currentYear;
       }
-
-      // default status = Active if present
       if (!state.status){
         const statuses = new Set(rows.map(r => norm(r.Status)));
         if (statuses.has("Active")) state.status = "Active";
       }
     }
 
+    // IMPORTANT: Search is independent of dropdown selections in the sense that:
+    // - search always searches ALL rows using precomputed _search
+    // - dropdown option lists NEVER change based on the search text
+    // The final result set is still (dropdown filters AND search), which is the most useful behavior for a filter UI.
     function computeIds(){
       const qtext = norm(state.query).trim().toLowerCase();
       const y = norm(state.year);
@@ -309,13 +277,13 @@
       for (let i=0; i<rows.length; i++){
         const r = rows[i];
 
-        // AND filters
+        // dropdown filters (AND)
         if (y && norm(r.MTR_YEAR) !== y) continue;
         if (s && norm(r.Status) !== s) continue;
         if (l && norm(r.Lawyer) !== l) continue;
         if (t && norm(r.Mtr_Type) !== t) continue;
 
-        // Search
+        // search filter (AND) across ALL rows/fields
         if (qtext && r._search.indexOf(qtext) === -1) continue;
 
         ids.push(r.id);
@@ -330,6 +298,7 @@
     }
 
     function renderOptions(){
+      // option lists based on ALL rows (not dependent on search or other selections)
       const years = sortYears(uniq(rows.map(r => r.MTR_YEAR)));
       const statuses = sortAlpha(uniq(rows.map(r => r.Status)));
       const lawyers = sortAlpha(uniq(rows.map(r => r.Lawyer)));
@@ -343,7 +312,7 @@
       applySelection();
     }
 
-    // Debounce typing so search is smooth
+    // Debounce typing for smoothness
     let debounce = null;
     function scheduleApply(){
       if (debounce) clearTimeout(debounce);
@@ -351,31 +320,11 @@
     }
 
     // Events
-    q.addEventListener("input", () => {
-      state.query = q.value;
-      scheduleApply();
-    });
-
-    yearSel.addEventListener("change", () => {
-      state.year = yearSel.value;
-      // optionally tighten Status list by year (if you want dependent dropdowns later)
-      applySelection();
-    });
-
-    statusSel.addEventListener("change", () => {
-      state.status = statusSel.value;
-      applySelection();
-    });
-
-    lawyerSel.addEventListener("change", () => {
-      state.lawyer = lawyerSel.value;
-      applySelection();
-    });
-
-    typeSel.addEventListener("change", () => {
-      state.type = typeSel.value;
-      applySelection();
-    });
+    q.addEventListener("input", () => { state.query = q.value; scheduleApply(); });
+    yearSel.addEventListener("change", () => { state.year = yearSel.value; applySelection(); });
+    statusSel.addEventListener("change", () => { state.status = statusSel.value; applySelection(); });
+    lawyerSel.addEventListener("change", () => { state.lawyer = lawyerSel.value; applySelection(); });
+    typeSel.addEventListener("change", () => { state.type = typeSel.value; applySelection(); });
 
     clearBtn.addEventListener("click", () => {
       state.query = "";
@@ -384,40 +333,35 @@
       state.lawyer = "";
       state.type = "";
       q.value = "";
-      chooseDefaultsIfEmpty();   // reapply defaults after clearing
+      applyDefaultsIfEmpty();  // reapply defaults after clear
       renderOptions();
     });
 
     // Load data once
-    hintEl.textContent = "Loading Matters…";
-    grist.fetchSelectedTable({ format: "rows" })
+    setErr("");
+    grist.fetchSelectedTable({ format:"rows" })
       .then(data => {
-        setErr("");
         const all = data || [];
         if (!all.length){
-          hintEl.textContent = "No rows.";
           setErr("No rows returned. Check Select Data = Matters and access level.");
           return;
         }
 
-        // Validate required columns exist (fail with helpful message if not)
+        // Validate required columns
         const first = all[0] || {};
         const required = ["MatterID","Clients","Subject","Subject2","Lawyer","Mtr_Type","MTR_YEAR","Status"];
         const missing = required.filter(k => !(k in first));
         if (missing.length){
-          hintEl.textContent = "Schema mismatch";
           setErr("Missing column(s): " + missing.join(", "));
           return;
         }
 
-        // Reduce and precompute search text for speed
         rows = all.map(r => {
-          const searchBlob = (
-            norm(r.MatterID) + " " +
-            norm(r.Clients) + " " +
-            norm(r.Subject) + " " +
-            norm(r.Subject2)
-          ).toLowerCase();
+          const searchBlob =
+            (norm(r.MatterID) + " " +
+             norm(r.Clients) + " " +
+             norm(r.Subject) + " " +
+             norm(r.Subject2)).toLowerCase();
 
           return {
             id: r.id,
@@ -429,12 +373,10 @@
           };
         });
 
-        hintEl.textContent = `Loaded ${rows.length} rows`;
-        chooseDefaultsIfEmpty();
+        applyDefaultsIfEmpty();
         renderOptions();
       })
       .catch(e => {
-        hintEl.textContent = "Load failed";
         setErr("fetchSelectedTable failed: " + (e && e.message ? e.message : e));
       });
   </script>
