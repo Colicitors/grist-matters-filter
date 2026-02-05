@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Filter Matters</title>
+
+  <!-- Grist Plugin API (required for hosted widgets) -->
+  <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+
+  <style>
+    :root{
+      /* Dark app theme (high contrast) */
+      --page:   #0b1220;
+      --ink:    #e5e7eb;
+      --muted:  #a7b0c0;
+      --border: rgba(255,255,255,.10);
+      --shadow: 0 14px 30px rgba(0,0,0,.38);
+
+      /* Accent */
+      --accent: #22d3ee;  /* cyan */
+      --ring:   rgba(34,211,238,.22);
+
+      /* Slim sizing */
+      --pad: 5px;
+      --gap: 5px;
+      --radius: 12px;
+      --controlH: 24px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+
+    html, body { height: 100%; }
+    body{
+      margin:0;
+      font-family: var(--font);
+      color: var(--ink);
+      background:
+        radial-gradient(700px 250px at 15% 0%, rgba(96,165,250,.22), transparent 60%),
+        radial-gradient(700px 250px at 85% 0%, rgba(34,211,238,.18), transparent 60%),
+        linear-gradient(180deg, #070b14, var(--page));
+    }
+
+    .shell{ padding: var(--pad); }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: var(--gap);
+      padding: 5px 7px;
+      background: linear-gradient(90deg, rgba(96,165,250,.10), rgba(34,211,238,.08));
+      border-bottom: 1px solid rgba(255,255,255,.10);
+    }
+
+    .title{
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: .25px;
+      color: #f8fafc;
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .tag{
+      display:none;
+      align-items:center;
+      gap:6px;
+      font-size: 10.5px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(34,211,238,.22);
+      background: rgba(34,211,238,.10);
+      color: #eaffff;
+      max-width: 240px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tag .hl{
+      background: rgba(34,211,238,.22);
+      border: 1px solid rgba(34,211,238,.28);
+      padding: 1px 6px;
+      border-radius: 999px;
+      color: #ffffff;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .right{
+      display:flex;
+      align-items:center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .pill{
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(34,211,238,.12);
+      border: 1px solid rgba(34,211,238,.25);
+      color: #eaffff;
+    }
+
+    button{
+      height: var(--controlH);
+      padding: 0 8px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--ink);
+      font-size: 11px;
+      cursor:pointer;
+      transition: background .12s ease, border-color .12s ease, transform .05s ease;
+    }
+    button:hover{
+      background: rgba(255,255,255,.10);
+      border-color: rgba(255,255,255,.22);
+    }
+    button:active{ transform: translateY(1px); }
+    button:focus{
+      outline:none;
+      box-shadow: 0 0 0 3px var(--ring);
+      border-color: rgba(34,211,238,.35);
+    }
+
+    .content{
+      padding: 6px 7px 7px;
+      display:grid;
+      gap: var(--gap);
+    }
+
+    .row{
+      display:grid;
+      gap: var(--gap);
+      align-items:end;
+    }
+
+    /* Row 1: 4 filters */
+    .rowFilters{
+      grid-template-columns: 0.8fr 0.8fr 1fr 1fr;
+    }
+
+    /* OR divider row */
+    .orRow{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      margin: -1px 0;
+    }
+    .orLine{
+      height: 1px;
+      background: rgba(255,255,255,.12);
+      flex: 1;
+    }
+    .orTag{
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: .16em;
+      font-weight: 800;
+    }
+
+    /* Search row */
+    .rowSearch{ grid-template-columns: 1fr; }
+
+    .field{
+      display:grid;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    label{
+      font-size: 10.5px;
+      color: var(--muted);
+      line-height: 1;
+    }
+
+    input, select{
+      height: var(--controlH);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(10,16,30,.55);
+      padding: 0 8px;
+      font-size: 11px;
+      color: var(--ink);
+      outline:none;
+      min-width: 0;
+      transition: border-color .12s ease, box-shadow .12s ease, background .12s ease;
+    }
+
+    input::placeholder{ color: rgba(167,176,192,.70); }
+
+    input:focus, select:focus{
+      box-shadow: 0 0 0 3px var(--ring);
+      border-color: rgba(34,211,238,.40);
+      background: rgba(10,16,30,.72);
+    }
+
+    /* Disabled filter look when search is active */
+    select:disabled{
+      background: rgba(255,255,255,.05);
+      color: rgba(167,176,192,.55);
+      border-color: rgba(255,255,255,.10);
+    }
+
+    /* Search input with clear X inside */
+    .searchWrap{
+      position: relative;
+    }
+    .searchWrap input{
+      width: 100%;
+      padding-right: 28px; /* room for X */
+    }
+    .clearX{
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 18px;
+      width: 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.08);
+      color: rgba(229,231,235,.9);
+      display: none; /* shown when there is text */
+      align-items:center;
+      justify-content:center;
+      line-height: 1;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 0;
+    }
+    .clearX:hover{
+      background: rgba(255,255,255,.12);
+      border-color: rgba(255,255,255,.22);
+    }
+    .clearX:focus{
+      outline: none;
+      box-shadow: 0 0 0 3px var(--ring);
+      border-color: rgba(34,211,238,.35);
+    }
+
+    /* Tiny helper line (kept slim) */
+    .microHint{
+      margin-top: 2px;
+      font-size: 10.5px;
+      color: rgba(167,176,192,.85);
+    }
+
+    .err{
+      font-size: 11px;
+      color: #fca5a5;
+      margin-top: -2px;
+      min-height: 14px;
+    }
+
+    @media (max-width: 760px){
+      .rowFilters{ grid-template-columns: 1fr 1fr; }
+      .tag{ max-width: 160px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+    <div class="card">
+      <div class="topbar">
+        <div class="title">
+          Filter Matters
+          <span class="tag" id="searchTag">
+            Search <span class="hl" id="searchHL"></span>
+          </span>
+        </div>
+        <div class="right">
+          <span class="pill" id="count">0 matches</span>
+          <button id="clearBtn" title="Reset filters and search">Clear</button>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- Filters row -->
+        <div class="row rowFilters">
+          <div class="field">
+            <label for="yearSel">Select Matter Year</label>
+            <select id="yearSel"></select>
+          </div>
+
+          <div class="field">
+            <label for="statusSel">Select Matter Status</label>
+            <select id="statusSel"></select>
+          </div>
+
+          <div class="field">
+            <label for="lawyerSel">Lawyer</label>
+            <select id="lawyerSel"></select>
+          </div>
+
+          <div class="field">
+            <label for="typeSel">Matter Type</label>
+            <select id="typeSel"></select>
+          </div>
+        </div>
+
+        <!-- OR cue -->
+        <div class="orRow" aria-hidden="true">
+          <span class="orLine"></span>
+          <span class="orTag">OR</span>
+          <span class="orLine"></span>
+        </div>
+
+        <!-- Search row -->
+        <div class="row rowSearch">
+          <div class="field">
+            <label for="q">Search (MatterID, Clients, Subject, Subject2)</label>
+
+            <div class="searchWrap">
+              <input id="q" type="search" placeholder="Type, then press Enter…" autocomplete="off" />
+              <button class="clearX" id="clearX" type="button" aria-label="Clear search" title="Clear search">×</button>
+            </div>
+
+            <div class="microHint" id="microHint">Press Enter to search. Filters are ignored while searching.</div>
+          </div>
+        </div>
+
+        <div class="err" id="err"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Standard initialization for a custom widget embedded in Grist. [1](https://py-grist-api.readthedocs.io/en/latest/grist_api.html)[2](https://stackoverflow.com/questions/17012727/how-to-set-the-x-frame-options-in-a-content-hosted-by-github)
+    grist.ready({ requiredAccess: "read table", allowSelectBy: true });
+
+    const q = document.getElementById("q");
+    const clearX = document.getElementById("clearX");
+    const microHint = document.getElementById("microHint");
+
+    const yearSel = document.getElementById("yearSel");
+    const statusSel = document.getElementById("statusSel");
+    const lawyerSel = document.getElementById("lawyerSel");
+    const typeSel = document.getElementById("typeSel");
+
+    const countEl = document.getElementById("count");
+    const errEl = document.getElementById("err");
+    const clearBtn = document.getElementById("clearBtn");
+
+    const searchTag = document.getElementById("searchTag");
+    const searchHL = document.getElementById("searchHL");
+
+    let rows = []; // {id, MTR_YEAR, Status, Lawyer, Mtr_Type, _search}
+    let state = {
+      queryDraft: "",   // what user is typing
+      query: "",        // committed search (Enter)
+      year: "", status: "", lawyer: "", type: ""
+    };
+
+    function norm(v){ return (v === null || v === undefined) ? "" : String(v); }
+    function setErr(msg){ errEl.textContent = msg || ""; }
+
+    function uniq(arr){
+      const s = new Set(arr.map(norm));
+      return [...s].filter(v => v !== "");
+    }
+    function sortYears(years){
+      return years.map(Number).filter(n => !Number.isNaN(n)).sort((a,b)=>b-a).map(String);
+    }
+    function sortAlpha(items){
+      return items.sort((a,b)=>a.localeCompare(b, undefined, { sensitivity:"base" }));
+    }
+
+    function fillSelect(sel, items, selected, allLabel){
+      sel.innerHTML = "";
+      const all = document.createElement("option");
+      all.value = "";
+      all.textContent = allLabel;
+      sel.appendChild(all);
+
+      items.forEach(v => {
+        const o = document.createElement("option");
+        o.value = v;
+        o.textContent = v;
+        sel.appendChild(o);
+      });
+
+      sel.value = selected || "";
+    }
+
+    function applyDefaultsIfEmpty(){
+      if (!state.year){
+        const currentYear = String(new Date().getFullYear());
+        const years = new Set(rows.map(r => norm(r.MTR_YEAR)));
+        if (years.has(currentYear)) state.year = currentYear;
+      }
+      if (!state.status){
+        const statuses = new Set(rows.map(r => norm(r.Status)));
+        if (statuses.has("Active")) state.status = "Active";
+      }
+    }
+
+    function searching(){
+      return norm(state.query).trim().length > 0;
+    }
+
+    function syncUIForMode(){
+      const isSearching = searching();
+
+      yearSel.disabled = isSearching;
+      statusSel.disabled = isSearching;
+      lawyerSel.disabled = isSearching;
+      typeSel.disabled = isSearching;
+
+      // show/hide top tag highlight
+      if (isSearching){
+        searchHL.textContent = state.query;
+        searchTag.style.display = "inline-flex";
+        microHint.textContent = "Search mode active (filters ignored). Press Esc to clear.";
+      } else {
+        searchTag.style.display = "none";
+        microHint.textContent = "Press Enter to search. Filters are ignored while searching.";
+      }
+    }
+
+    // OR behavior:
+    // - Search committed (Enter) => SEARCH ONLY (ignores dropdowns)
+    // - No committed search => FILTER ONLY (AND across dropdowns)
+    function computeIds(){
+      const qtext = norm(state.query).trim().toLowerCase();
+
+      if (qtext){
+        const ids = [];
+        for (let i=0; i<rows.length; i++){
+          if (rows[i]._search.indexOf(qtext) !== -1) ids.push(rows[i].id);
+        }
+        return ids;
+      }
+
+      const y = norm(state.year);
+      const s = norm(state.status);
+      const l = norm(state.lawyer);
+      const t = norm(state.type);
+
+      const ids = [];
+      for (let i=0; i<rows.length; i++){
+        const r = rows[i];
+        if (y && norm(r.MTR_YEAR) !== y) continue;
+        if (s && norm(r.Status) !== s) continue;
+        if (l && norm(r.Lawyer) !== l) continue;
+        if (t && norm(r.Mtr_Type) !== t) continue;
+        ids.push(r.id);
+      }
+      return ids;
+    }
+
+    function applySelection(){
+      const ids = computeIds();
+      countEl.textContent = `${ids.length} matches`;
+
+      // Set selected rows for linked widgets. [3](https://www.tutorialpedia.org/blog/how-can-i-set-x-frame-options-on-an-iframe/)[2](https://stackoverflow.com/questions/17012727/how-to-set-the-x-frame-options-in-a-content-hosted-by-github)
+      grist.setSelectedRows(ids.length ? ids : null);
+    }
+
+    function renderOptions(){
+      const years = sortYears(uniq(rows.map(r => r.MTR_YEAR)));
+      const statuses = sortAlpha(uniq(rows.map(r => r.Status)));
+      const lawyers = sortAlpha(uniq(rows.map(r => r.Lawyer)));
+      const types = sortAlpha(uniq(rows.map(r => r.Mtr_Type)));
+
+      fillSelect(yearSel, years, state.year, "All years");
+      fillSelect(statusSel, statuses, state.status, "All statuses");
+      fillSelect(lawyerSel, lawyers, state.lawyer, "All lawyers");
+      fillSelect(typeSel, types, state.type, "All types");
+    }
+
+    // ---- Search: type does NOT search; Enter commits the query ----
+    function updateClearX(){
+      const hasText = norm(state.queryDraft).length > 0;
+      clearX.style.display = hasText ? "inline-flex" : "none";
+    }
+
+    function clearSearch(){
+      state.queryDraft = "";
+      state.query = "";
+      q.value = "";
+      updateClearX();
+      syncUIForMode();
+      applySelection();
+    }
+
+    q.addEventListener("input", () => {
+      state.queryDraft = q.value;
+      updateClearX();
+      // No searching here on purpose
+    });
+
+    q.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter"){
+        ev.preventDefault();
+        state.query = norm(state.queryDraft).trim();
+        syncUIForMode();
+        applySelection();
+      } else if (ev.key === "Escape"){
+        ev.preventDefault();
+        clearSearch();
+      }
+    });
+
+    clearX.addEventListener("click", () => {
+      clearSearch();
+      q.focus();
+    });
+
+    // Filters: only apply when not searching (they’ll be disabled anyway, but safe-guard)
+    yearSel.addEventListener("change", () => { state.year = yearSel.value; applySelection(); });
+    statusSel.addEventListener("change", () => { state.status = statusSel.value; applySelection(); });
+    lawyerSel.addEventListener("change", () => { state.lawyer = lawyerSel.value; applySelection(); });
+    typeSel.addEventListener("change", () => { state.type = typeSel.value; applySelection(); });
+
+    clearBtn.addEventListener("click", () => {
+      state.queryDraft = "";
+      state.query = "";
+      q.value = "";
+      updateClearX();
+
+      state.year = "";
+      state.status = "";
+      state.lawyer = "";
+      state.type = "";
+
+      applyDefaultsIfEmpty();
+      renderOptions();
+      syncUIForMode();
+      applySelection();
+    });
+
+    // Load data once (selected table must be Matters). [2](https://stackoverflow.com/questions/17012727/how-to-set-the-x-frame-options-in-a-content-hosted-by-github)[1](https://py-grist-api.readthedocs.io/en/latest/grist_api.html)
+    setErr("");
+    grist.fetchSelectedTable({ format:"rows" })
+      .then(data => {
+        const all = data || [];
+        if (!all.length){
+          setErr("No rows returned. Check Select Data = Matters and access level.");
+          return;
+        }
+
+        const first = all[0] || {};
+        const required = ["MatterID","Clients","Subject","Subject2","Lawyer","Mtr_Type","MTR_YEAR","Status"];
+        const missing = required.filter(k => !(k in first));
+        if (missing.length){
+          setErr("Missing column(s): " + missing.join(", "));
+          return;
+        }
+
+        // Precompute search string for fast Enter-search
+        rows = all.map(r => {
+          const searchBlob = (
+            norm(r.MatterID) + " " +
+            norm(r.Clients) + " " +
+            norm(r.Subject) + " " +
+            norm(r.Subject2)
+          ).toLowerCase();
+
+          return {
+            id: r.id,
+            MTR_YEAR: r.MTR_YEAR,
+            Status: r.Status,
+            Lawyer: r.Lawyer,
+            Mtr_Type: r.Mtr_Type,
+            _search: searchBlob
+          };
+        });
+
+        applyDefaultsIfEmpty();
+        renderOptions();
+        syncUIForMode();
+        applySelection();
+      })
+      .catch(e => {
+        setErr("fetchSelectedTable failed: " + (e && e.message ? e.message : e));
+      });
+  </script>
+</body>
+</html>
