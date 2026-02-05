@@ -5,24 +5,25 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Filter Matters</title>
 
-  <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+  <!-- Grist Plugin API (required for hosted widgets) -->
+  <script src="https://docs.getgrist.com/grist-plugin-api.js"></script> <!-- [1](https://py-grist-api.readthedocs.io/en/latest/grist_api.html)[2](https://stackoverflow.com/questions/17012727/how-to-set-the-x-frame-options-in-a-content-hosted-by-github) -->
 
   <style>
     :root{
-      /* Light gray "app" theme */
-      --page: #f3f4f6;          /* bg */
-      --card: #ffffff;          /* card */
-      --ink:  #0f172a;          /* text */
-      --muted:#64748b;          /* labels */
+      /* Light gray app theme */
+      --page:   #f3f4f6;
+      --card:   #ffffff;
+      --ink:    #0f172a;
+      --muted:  #64748b;
       --border: rgba(15,23,42,.12);
       --shadow: 0 8px 18px rgba(15,23,42,.08);
-      --ring: rgba(100,116,139,.35);
+      --ring:   rgba(100,116,139,.30);
 
-      /* Slim sizing */
-      --pad: 6px;
-      --gap: 6px;
+      /* Slim sizing (aim for ~1.5in widget height when you resize the section) */
+      --pad: 5px;
+      --gap: 5px;
       --radius: 12px;
-      --controlH: 26px;         /* slimmer controls */
+      --controlH: 24px;         /* slimmer controls */
       --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     }
 
@@ -49,14 +50,14 @@
       align-items:center;
       justify-content:space-between;
       gap: var(--gap);
-      padding: 6px 8px;               /* slimmer */
+      padding: 5px 7px;                 /* slimmer */
       background: #fafafa;
       border-bottom: 1px solid var(--border);
     }
 
     .title{
-      font-weight: 700;
-      font-size: 12.5px;
+      font-weight: 800;
+      font-size: 12px;
       letter-spacing: .2px;
     }
 
@@ -68,7 +69,7 @@
     }
 
     .pill{
-      font-size: 11.5px;
+      font-size: 11px;
       padding: 2px 8px;
       border-radius: 999px;
       background: #f1f5f9;
@@ -83,14 +84,14 @@
       border: 1px solid rgba(15,23,42,.14);
       background: #f8fafc;
       color: #111827;
-      font-size: 11.5px;
+      font-size: 11px;
       cursor:pointer;
     }
     button:hover{ background:#f1f5f9; }
     button:focus{ outline:none; box-shadow: 0 0 0 3px var(--ring); }
 
     .content{
-      padding: 6px 8px 8px;           /* slimmer */
+      padding: 6px 7px 7px;             /* slimmer */
       display:grid;
       gap: var(--gap);
     }
@@ -101,24 +102,43 @@
       align-items:end;
     }
 
-    /* Row 1: Year + Status + Lawyer + Type */
+    /* Row 1: 4 filters */
     .rowFilters{
       grid-template-columns: 0.8fr 0.8fr 1fr 1fr;
     }
 
-    /* Row 2: Search across full width */
+    /* OR divider row */
+    .orRow{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      margin: -1px 0;                   /* keeps it slim */
+    }
+    .orLine{
+      height: 1px;
+      background: rgba(15,23,42,.10);
+      flex: 1;
+    }
+    .orTag{
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: .16em;
+      font-weight: 800;
+    }
+
+    /* Row 2: search */
     .rowSearch{
       grid-template-columns: 1fr;
     }
 
     .field{
       display:grid;
-      gap: 3px;                       /* slimmer */
+      gap: 3px;
       min-width: 0;
     }
 
     label{
-      font-size: 10.75px;
+      font-size: 10.5px;
       color: var(--muted);
       line-height: 1;
     }
@@ -129,7 +149,7 @@
       border: 1px solid rgba(15,23,42,.14);
       background: #ffffff;
       padding: 0 8px;
-      font-size: 11.5px;
+      font-size: 11px;
       color: var(--ink);
       outline:none;
       min-width: 0;
@@ -140,14 +160,19 @@
       border-color: rgba(100,116,139,.45);
     }
 
+    /* Disabled filter look when search is active */
+    select:disabled{
+      background: #f3f4f6;
+      color: #94a3b8;
+    }
+
     .err{
       font-size: 11px;
       color: #b91c1c;
       margin-top: -2px;
-      min-height: 14px; /* keeps layout stable even when empty */
+      min-height: 14px; /* stabilizes layout */
     }
 
-    /* Responsive fallback */
     @media (max-width: 760px){
       .rowFilters{ grid-template-columns: 1fr 1fr; }
     }
@@ -166,6 +191,7 @@
       </div>
 
       <div class="content">
+        <!-- Filters row -->
         <div class="row rowFilters">
           <div class="field">
             <label for="yearSel">Select Matter Year</label>
@@ -188,6 +214,14 @@
           </div>
         </div>
 
+        <!-- OR cue -->
+        <div class="orRow" aria-hidden="true">
+          <span class="orLine"></span>
+          <span class="orTag">OR</span>
+          <span class="orLine"></span>
+        </div>
+
+        <!-- Search row -->
         <div class="row rowSearch">
           <div class="field">
             <label for="q">Search (MatterID, Clients, Subject, Subject2)</label>
@@ -201,7 +235,7 @@
   </div>
 
   <script>
-    // Init: allow linking + read access
+    // Initialize widget: request read access; enable linking as Select By source. [1](https://py-grist-api.readthedocs.io/en/latest/grist_api.html)[2](https://stackoverflow.com/questions/17012727/how-to-set-the-x-frame-options-in-a-content-hosted-by-github)
     grist.ready({ requiredAccess: "read table", allowSelectBy: true });
 
     const q = document.getElementById("q");
@@ -213,8 +247,6 @@
     const errEl = document.getElementById("err");
     const clearBtn = document.getElementById("clearBtn");
 
-    // Keep only what we need + a precomputed search string
-    // Expected keys (based on your earlier debug): MatterID, Clients, Subject, Subject2, Lawyer, Mtr_Type, MTR_YEAR, Status
     let rows = []; // {id, MTR_YEAR, Status, Lawyer, Mtr_Type, _search}
     let state = { query:"", year:"", status:"", lawyer:"", type:"" };
 
@@ -249,25 +281,44 @@
       sel.value = selected || "";
     }
 
-    // Defaults: current year + Active, if available
     function applyDefaultsIfEmpty(){
+      // default year = current year if present
       if (!state.year){
         const currentYear = String(new Date().getFullYear());
         const years = new Set(rows.map(r => norm(r.MTR_YEAR)));
         if (years.has(currentYear)) state.year = currentYear;
       }
+      // default status = Active if present
       if (!state.status){
         const statuses = new Set(rows.map(r => norm(r.Status)));
         if (statuses.has("Active")) state.status = "Active";
       }
     }
 
-    // IMPORTANT: Search is independent of dropdown selections in the sense that:
-    // - search always searches ALL rows using precomputed _search
-    // - dropdown option lists NEVER change based on the search text
-    // The final result set is still (dropdown filters AND search), which is the most useful behavior for a filter UI.
+    function syncUIForMode(){
+      const searching = norm(state.query).trim().length > 0;
+      yearSel.disabled = searching;
+      statusSel.disabled = searching;
+      lawyerSel.disabled = searching;
+      typeSel.disabled = searching;
+    }
+
+    // OR behavior:
+    // - If search text exists => ignore ALL dropdown filters, search across ALL rows.
+    // - If search empty => apply dropdown filters (AND).
     function computeIds(){
       const qtext = norm(state.query).trim().toLowerCase();
+
+      // Search-only mode
+      if (qtext){
+        const ids = [];
+        for (let i=0; i<rows.length; i++){
+          if (rows[i]._search.indexOf(qtext) !== -1) ids.push(rows[i].id);
+        }
+        return ids;
+      }
+
+      // Filter-only mode (AND)
       const y = norm(state.year);
       const s = norm(state.status);
       const l = norm(state.lawyer);
@@ -276,16 +327,10 @@
       const ids = [];
       for (let i=0; i<rows.length; i++){
         const r = rows[i];
-
-        // dropdown filters (AND)
         if (y && norm(r.MTR_YEAR) !== y) continue;
         if (s && norm(r.Status) !== s) continue;
         if (l && norm(r.Lawyer) !== l) continue;
         if (t && norm(r.Mtr_Type) !== t) continue;
-
-        // search filter (AND) across ALL rows/fields
-        if (qtext && r._search.indexOf(qtext) === -1) continue;
-
         ids.push(r.id);
       }
       return ids;
@@ -294,11 +339,13 @@
     function applySelection(){
       const ids = computeIds();
       countEl.textContent = `${ids.length} matches`;
+
+      // Drive linked widgets by selected rows. [3](https://www.tutorialpedia.org/blog/how-can-i-set-x-frame-options-on-an-iframe/)[2](https://stackoverflow.com/questions/17012727/how-to-set-the-x-frame-options-in-a-content-hosted-by-github)
       grist.setSelectedRows(ids.length ? ids : null);
     }
 
     function renderOptions(){
-      // option lists based on ALL rows (not dependent on search or other selections)
+      // Option lists always based on ALL rows (not dependent on search or other filters)
       const years = sortYears(uniq(rows.map(r => r.MTR_YEAR)));
       const statuses = sortAlpha(uniq(rows.map(r => r.Status)));
       const lawyers = sortAlpha(uniq(rows.map(r => r.Lawyer)));
@@ -308,19 +355,21 @@
       fillSelect(statusSel, statuses, state.status, "All statuses");
       fillSelect(lawyerSel, lawyers, state.lawyer, "All lawyers");
       fillSelect(typeSel, types, state.type, "All types");
-
-      applySelection();
     }
 
-    // Debounce typing for smoothness
     let debounce = null;
-    function scheduleApply(){
+    function scheduleApply(ms){
       if (debounce) clearTimeout(debounce);
-      debounce = setTimeout(applySelection, 120);
+      debounce = setTimeout(applySelection, ms || 200);
     }
 
     // Events
-    q.addEventListener("input", () => { state.query = q.value; scheduleApply(); });
+    q.addEventListener("input", () => {
+      state.query = q.value;
+      syncUIForMode();
+      scheduleApply(220);
+    });
+
     yearSel.addEventListener("change", () => { state.year = yearSel.value; applySelection(); });
     statusSel.addEventListener("change", () => { state.status = statusSel.value; applySelection(); });
     lawyerSel.addEventListener("change", () => { state.lawyer = lawyerSel.value; applySelection(); });
@@ -333,11 +382,13 @@
       state.lawyer = "";
       state.type = "";
       q.value = "";
-      applyDefaultsIfEmpty();  // reapply defaults after clear
+      applyDefaultsIfEmpty();   // reapply defaults
+      syncUIForMode();
       renderOptions();
+      applySelection();
     });
 
-    // Load data once
+    // Load data once from the selected table. [2](https://stackoverflow.com/questions/17012727/how-to-set-the-x-frame-options-in-a-content-hosted-by-github)[1](https://py-grist-api.readthedocs.io/en/latest/grist_api.html)
     setErr("");
     grist.fetchSelectedTable({ format:"rows" })
       .then(data => {
@@ -356,12 +407,14 @@
           return;
         }
 
+        // Reduce + precompute search string (fast searching)
         rows = all.map(r => {
-          const searchBlob =
-            (norm(r.MatterID) + " " +
-             norm(r.Clients) + " " +
-             norm(r.Subject) + " " +
-             norm(r.Subject2)).toLowerCase();
+          const searchBlob = (
+            norm(r.MatterID) + " " +
+            norm(r.Clients) + " " +
+            norm(r.Subject) + " " +
+            norm(r.Subject2)
+          ).toLowerCase();
 
           return {
             id: r.id,
@@ -375,6 +428,8 @@
 
         applyDefaultsIfEmpty();
         renderOptions();
+        syncUIForMode();
+        applySelection();
       })
       .catch(e => {
         setErr("fetchSelectedTable failed: " + (e && e.message ? e.message : e));
