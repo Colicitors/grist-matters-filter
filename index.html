@@ -10,178 +10,164 @@
 
   <style>
     :root{
-      --bg1:#0b1220;
-      --bg2:#111b33;
-      --card:#0f172a;
-      --card2:#101b35;
-      --text:#e5e7eb;
-      --muted:#9ca3af;
-      --border:rgba(255,255,255,.10);
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --ring: 0 0 0 3px rgba(59,130,246,.25);
-      --accent:#3b82f6;
-      --radius:14px;
-      --radius2:12px;
+      /* Light Teal Theme */
+      --page: #eaf7f6;
+      --card: #ffffff;
+      --ink: #0f172a;
+      --muted: #47636b;
+      --teal: #0ea5a4;
+      --teal2:#14b8a6;
+      --ring: rgba(20,184,166,.35);
+      --border: rgba(2,132,126,.18);
+      --shadow: 0 10px 25px rgba(2,132,126,.12);
 
-      --pad:10px;          /* overall padding -> thinner */
-      --controlPad:8px 10px; /* control padding -> thinner */
+      /* Compact sizing: target ~1.5in tall */
+      --pad: 8px;
+      --gap: 8px;
+      --radius: 12px;
+      --controlH: 30px;
       --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
 
-    html, body { height: 100%; }
+    html, body { height:100%; }
     body{
       margin:0;
       font-family: var(--font);
-      color: var(--text);
-      background: radial-gradient(900px 420px at 10% 0%, rgba(59,130,246,.25), transparent 60%),
-                  radial-gradient(900px 420px at 90% 0%, rgba(34,197,94,.20), transparent 60%),
-                  linear-gradient(180deg, var(--bg1), var(--bg2));
+      background: linear-gradient(180deg, #f2fbfa, var(--page));
+      color: var(--ink);
     }
 
-    .shell{
-      padding: var(--pad);
-    }
+    /* Keep everything tight */
+    .shell{ padding: var(--pad); }
 
     .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      background: var(--card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      overflow: hidden;
+      overflow:hidden;
     }
 
     .topbar{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:10px;
-      padding: 10px 12px;
-      background: rgba(0,0,0,.18);
+      gap: var(--gap);
+      padding: 8px 10px;
+      background: linear-gradient(90deg, rgba(20,184,166,.14), rgba(14,165,164,.07));
       border-bottom: 1px solid var(--border);
     }
 
     .title{
-      font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
+      font-size: 12.5px;
       letter-spacing: .2px;
+      color: #0b3d3f;
     }
 
-    .meta{
+    .right{
       display:flex;
       align-items:center;
-      gap:8px;
-      white-space:nowrap;
-      font-size: 12px;
-      color: var(--muted);
+      gap: 8px;
+      white-space: nowrap;
     }
 
     .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
+      font-size: 12px;
       padding: 3px 10px;
       border-radius: 999px;
-      background: rgba(255,255,255,.08);
-      border: 1px solid rgba(255,255,255,.10);
-      color: var(--text);
-      font-size: 12px;
+      background: rgba(20,184,166,.12);
+      border: 1px solid rgba(20,184,166,.25);
+      color: #0b3d3f;
     }
+
+    button{
+      height: var(--controlH);
+      padding: 0 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(14,165,164,.30);
+      background: rgba(14,165,164,.10);
+      color: #0b3d3f;
+      font-size: 12px;
+      cursor:pointer;
+    }
+    button:hover{ background: rgba(14,165,164,.14); }
+    button:focus{ outline: none; box-shadow: 0 0 0 3px var(--ring); }
 
     .content{
-      padding: 10px 12px 12px;
+      padding: 8px 10px 10px;
       display:grid;
-      gap:10px;
+      gap: var(--gap);
     }
 
-    .grid{
+    /* Two compact rows */
+    .row{
       display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
+      gap: var(--gap);
+    }
+
+    /* Row 1: Search + Year + Status */
+    .row1{
+      grid-template-columns: 1.6fr 0.7fr 0.7fr;
+      align-items:end;
+    }
+
+    /* Row 2: Lawyer + Matter Type + (hint) */
+    .row2{
+      grid-template-columns: 1fr 1fr auto;
+      align-items:end;
     }
 
     .field{
       display:grid;
-      gap:6px;
+      gap: 4px;
+      min-width: 0;
     }
 
     label{
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    select{
-      width: 100%;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(15,23,42,.65);
-      color: var(--text);
-      border-radius: var(--radius2);
-      padding: var(--controlPad);
-      outline: none;
-    }
-
-    select:focus{
-      box-shadow: var(--ring);
-      border-color: rgba(59,130,246,.55);
-    }
-
-    .actions{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      flex-wrap: wrap;
-    }
-
-    button{
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(15,23,42,.55);
-      color: var(--text);
-      border-radius: 12px;
-      padding: 7px 10px; /* thinner */
-      cursor: pointer;
-      font-size: 12px;
-    }
-    button:hover{ border-color: rgba(255,255,255,.22); }
-    button:focus{ box-shadow: var(--ring); outline:none; border-color: rgba(59,130,246,.55); }
-
-    .btn-primary{
-      background: rgba(59,130,246,.20);
-      border-color: rgba(59,130,246,.45);
-    }
-
-    .btn-ghost{
-      background: transparent;
-    }
-
-    .btn-chip{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding: 6px 10px;
-      border-radius: 999px;
-    }
-
-    .kicker{
-      font-family: var(--mono);
       font-size: 11px;
-      color: rgba(229,231,235,.75);
+      color: var(--muted);
+      line-height: 1;
+    }
+
+    input, select{
+      height: var(--controlH);
+      border-radius: 10px;
+      border: 1px solid rgba(15,118,110,.22);
+      background: #fbfefe;
+      padding: 0 10px;
+      font-size: 12px;
+      color: var(--ink);
+      outline: none;
+      min-width: 0;
+    }
+
+    input:focus, select:focus{
+      box-shadow: 0 0 0 3px var(--ring);
+      border-color: rgba(14,165,164,.55);
     }
 
     .hint{
-      font-size: 12px;
+      font-size: 11px;
       color: var(--muted);
-      margin-top: -2px;
+      padding-bottom: 2px;
+      justify-self: end;
+      text-align:right;
+      max-width: 220px;
+      line-height: 1.1;
     }
 
     .err{
-      font-size: 12px;
-      color: #fca5a5;
+      font-size: 11px;
+      color: #b91c1c;
+      margin-top: -4px;
     }
 
-    /* Makes the widget “thinner” visually on short heights */
-    @media (max-height: 320px) {
-      .topbar { padding: 8px 10px; }
-      .content { padding: 8px 10px 10px; gap: 8px; }
+    /* Make it resilient on smaller widths: wrap to 2 columns */
+    @media (max-width: 520px){
+      .row1{ grid-template-columns: 1fr 1fr; }
+      .row2{ grid-template-columns: 1fr 1fr; }
+      .hint{ justify-self: start; text-align:left; }
     }
   </style>
 </head>
@@ -190,15 +176,20 @@
   <div class="shell">
     <div class="card">
       <div class="topbar">
-        <div class="title">Matters Filter</div>
-        <div class="meta">
+        <div class="title">Matters</div>
+        <div class="right">
           <span class="pill" id="count">0 matches</span>
-          <button class="btn-ghost" id="clearBtn" title="Reset filters">Clear</button>
+          <button id="clearBtn" title="Reset filters">Clear</button>
         </div>
       </div>
 
       <div class="content">
-        <div class="grid">
+        <div class="row row1">
+          <div class="field">
+            <label for="q">Search (MatterID, Clients, Subject, Subject2)</label>
+            <input id="q" type="search" placeholder="Type to search…" autocomplete="off" />
+          </div>
+
           <div class="field">
             <label for="yearSel">Select Matter Year</label>
             <select id="yearSel"></select>
@@ -210,14 +201,18 @@
           </div>
         </div>
 
-        <div class="actions">
-          <button class="btn-chip btn-primary" id="sortYearBtn" title="Toggle year sort">
-            Sort Year: <span class="kicker" id="sortYearState">Desc</span>
-          </button>
-          <button class="btn-chip" id="sortStatusBtn" title="Toggle status sort">
-            Sort Status: <span class="kicker" id="sortStatusState">A→Z</span>
-          </button>
-          <span class="hint" id="hint">Loading…</span>
+        <div class="row row2">
+          <div class="field">
+            <label for="lawyerSel">Lawyer</label>
+            <select id="lawyerSel"></select>
+          </div>
+
+          <div class="field">
+            <label for="typeSel">Matter Type</label>
+            <select id="typeSel"></select>
+          </div>
+
+          <div class="hint" id="hint">Loading…</div>
         </div>
 
         <div class="err" id="err"></div>
@@ -226,50 +221,35 @@
   </div>
 
   <script>
-    // Initialize widget. requiredAccess is needed to read table data; allowSelectBy enables linking. [1](https://community.getgrist.com/t/super-dashboards-with-iframes-and-html-widget/6266)[2](https://community.getgrist.com/t/self-hosted-grist/11972)
+    // Request read access; enable "Select By" linking
     grist.ready({ requiredAccess: "read table", allowSelectBy: true });
 
+    const q = document.getElementById("q");
     const yearSel = document.getElementById("yearSel");
     const statusSel = document.getElementById("statusSel");
+    const lawyerSel = document.getElementById("lawyerSel");
+    const typeSel = document.getElementById("typeSel");
     const countEl = document.getElementById("count");
     const hintEl = document.getElementById("hint");
     const errEl = document.getElementById("err");
     const clearBtn = document.getElementById("clearBtn");
 
-    const sortYearBtn = document.getElementById("sortYearBtn");
-    const sortStatusBtn = document.getElementById("sortStatusBtn");
-    const sortYearState = document.getElementById("sortYearState");
-    const sortStatusState = document.getElementById("sortStatusState");
+    // Data: keep only what we need (fast & memory-friendly)
+    // Expected columns (from your Matters table):
+    // MatterID, Clients, Subject, Subject2, Lawyer, Mtr_Type, MTR_YEAR, Status
+    let rows = [];  // {id, MTR_YEAR, Status, Lawyer, Mtr_Type, _search}
+    let state = {
+      query: "",
+      year: "",
+      status: "",
+      lawyer: "",
+      type: ""
+    };
 
-    let rows = [];
-    let state = { year: "", status: "" };
+    function norm(v){ return (v === null || v === undefined) ? "" : String(v); }
+    function setErr(msg){ errEl.textContent = msg || ""; }
 
-    // sorting preferences
-    let sortYear = "desc";   // "asc" | "desc"
-    let sortStatus = "az";   // "az" | "za"
-
-    function norm(v) { return (v === null || v === undefined) ? "" : String(v); }
-    function setErr(t){ errEl.textContent = t || ""; }
-
-    function uniq(values) {
-      const s = new Set(values.map(norm));
-      return [...s];
-    }
-
-    function sortYears(arr) {
-      const nums = arr.filter(v => v !== "").map(v => Number(v)).filter(n => !Number.isNaN(n));
-      nums.sort((a,b) => sortYear === "asc" ? a-b : b-a);
-      return nums.map(String);
-    }
-
-    function sortStrings(arr) {
-      const clean = arr.filter(v => v !== "");
-      clean.sort((a,b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
-      if (sortStatus === "za") clean.reverse();
-      return clean;
-    }
-
-    function fillSelect(sel, items, selected, allLabel) {
+    function fillSelect(sel, items, selected, allLabel){
       sel.innerHTML = "";
       const all = document.createElement("option");
       all.value = "";
@@ -286,69 +266,100 @@
       sel.value = selected || "";
     }
 
-    function computeIds() {
-      const y = norm(state.year);
-      const s = norm(state.status);
-
-      return rows
-        .filter(r =>
-          (!y || norm(r.MTR_YEAR) === y) &&
-          (!s || norm(r.Status) === s)
-        )
-        .map(r => r.id);
+    function uniq(arr){
+      const s = new Set(arr.map(norm));
+      return [...s].filter(v => v !== "");
     }
 
-    function applySelection() {
-      const ids = computeIds();
-      countEl.textContent = `${ids.length} matches`;
-
-      // Drive linked widgets by selected row ids. [3](https://gristlabs.github.io/grist-widget/inspect/api.html)[2](https://community.getgrist.com/t/self-hosted-grist/11972)
-      grist.setSelectedRows(ids.length ? ids : null);
+    function sortYears(years){
+      return years
+        .map(v => Number(v))
+        .filter(n => !Number.isNaN(n))
+        .sort((a,b) => b-a)           // newest first
+        .map(String);
     }
 
-    function chooseDefaultsIfEmpty() {
-      // Default year: current year if present
-      if (!state.year) {
+    function sortAlpha(items){
+      return items.sort((a,b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+    }
+
+    function chooseDefaultsIfEmpty(){
+      // default year = current year if present
+      if (!state.year){
         const currentYear = String(new Date().getFullYear());
         const years = new Set(rows.map(r => norm(r.MTR_YEAR)));
         if (years.has(currentYear)) state.year = currentYear;
       }
 
-      // Default status: "Active" if present
-      if (!state.status) {
+      // default status = Active if present
+      if (!state.status){
         const statuses = new Set(rows.map(r => norm(r.Status)));
         if (statuses.has("Active")) state.status = "Active";
       }
     }
 
-    function render() {
-      // build options
-      const yearsRaw = uniq(rows.map(r => r.MTR_YEAR));
-      const statusesRaw = (state.year)
-        ? uniq(rows.filter(r => norm(r.MTR_YEAR) === norm(state.year)).map(r => r.Status))
-        : uniq(rows.map(r => r.Status));
+    function computeIds(){
+      const qtext = norm(state.query).trim().toLowerCase();
+      const y = norm(state.year);
+      const s = norm(state.status);
+      const l = norm(state.lawyer);
+      const t = norm(state.type);
 
-      const years = sortYears(yearsRaw);
-      const statuses = sortStrings(statusesRaw.map(norm));
+      const ids = [];
+      for (let i=0; i<rows.length; i++){
+        const r = rows[i];
 
-      // keep current selections if still valid
-      const yearStillValid = new Set(years).has(norm(state.year)) || !state.year;
-      if (!yearStillValid) state.year = "";
+        // AND filters
+        if (y && norm(r.MTR_YEAR) !== y) continue;
+        if (s && norm(r.Status) !== s) continue;
+        if (l && norm(r.Lawyer) !== l) continue;
+        if (t && norm(r.Mtr_Type) !== t) continue;
 
-      const statusStillValid = new Set(statuses).has(norm(state.status)) || !state.status;
-      if (!statusStillValid) state.status = "";
+        // Search
+        if (qtext && r._search.indexOf(qtext) === -1) continue;
+
+        ids.push(r.id);
+      }
+      return ids;
+    }
+
+    function applySelection(){
+      const ids = computeIds();
+      countEl.textContent = `${ids.length} matches`;
+      grist.setSelectedRows(ids.length ? ids : null);
+    }
+
+    function renderOptions(){
+      const years = sortYears(uniq(rows.map(r => r.MTR_YEAR)));
+      const statuses = sortAlpha(uniq(rows.map(r => r.Status)));
+      const lawyers = sortAlpha(uniq(rows.map(r => r.Lawyer)));
+      const types = sortAlpha(uniq(rows.map(r => r.Mtr_Type)));
 
       fillSelect(yearSel, years, state.year, "All years");
       fillSelect(statusSel, statuses, state.status, "All statuses");
+      fillSelect(lawyerSel, lawyers, state.lawyer, "All lawyers");
+      fillSelect(typeSel, types, state.type, "All types");
 
       applySelection();
     }
 
-    // --- UI events ---
+    // Debounce typing so search is smooth
+    let debounce = null;
+    function scheduleApply(){
+      if (debounce) clearTimeout(debounce);
+      debounce = setTimeout(applySelection, 120);
+    }
+
+    // Events
+    q.addEventListener("input", () => {
+      state.query = q.value;
+      scheduleApply();
+    });
+
     yearSel.addEventListener("change", () => {
       state.year = yearSel.value;
-      // Re-render to update Status list based on year
-      render();
+      // optionally tighten Status list by year (if you want dependent dropdowns later)
+      applySelection();
     });
 
     statusSel.addEventListener("change", () => {
@@ -356,47 +367,76 @@
       applySelection();
     });
 
+    lawyerSel.addEventListener("change", () => {
+      state.lawyer = lawyerSel.value;
+      applySelection();
+    });
+
+    typeSel.addEventListener("change", () => {
+      state.type = typeSel.value;
+      applySelection();
+    });
+
     clearBtn.addEventListener("click", () => {
+      state.query = "";
       state.year = "";
       state.status = "";
-      render();
+      state.lawyer = "";
+      state.type = "";
+      q.value = "";
+      chooseDefaultsIfEmpty();   // reapply defaults after clearing
+      renderOptions();
     });
 
-    sortYearBtn.addEventListener("click", () => {
-      sortYear = (sortYear === "desc") ? "asc" : "desc";
-      sortYearState.textContent = (sortYear === "desc") ? "Desc" : "Asc";
-      render();
-    });
-
-    sortStatusBtn.addEventListener("click", () => {
-      sortStatus = (sortStatus === "az") ? "za" : "az";
-      sortStatusState.textContent = (sortStatus === "az") ? "A→Z" : "Z→A";
-      render();
-    });
-
-    // Load full table immediately so dropdowns populate. [2](https://community.getgrist.com/t/self-hosted-grist/11972)
+    // Load data once
     hintEl.textContent = "Loading Matters…";
-    grist.fetchSelectedTable({ format: "rows" }).then(data => {
-      setErr("");
-      const all = data || [];
-      if (!all.length) {
-        hintEl.textContent = "No rows.";
-        setErr("No rows returned. Check Select Data = Matters and access.");
-        return;
-      }
+    grist.fetchSelectedTable({ format: "rows" })
+      .then(data => {
+        setErr("");
+        const all = data || [];
+        if (!all.length){
+          hintEl.textContent = "No rows.";
+          setErr("No rows returned. Check Select Data = Matters and access level.");
+          return;
+        }
 
-      // We use your confirmed internal IDs: MTR_YEAR and Status
-      rows = all.map(r => ({ id: r.id, MTR_YEAR: r.MTR_YEAR, Status: r.Status }));
+        // Validate required columns exist (fail with helpful message if not)
+        const first = all[0] || {};
+        const required = ["MatterID","Clients","Subject","Subject2","Lawyer","Mtr_Type","MTR_YEAR","Status"];
+        const missing = required.filter(k => !(k in first));
+        if (missing.length){
+          hintEl.textContent = "Schema mismatch";
+          setErr("Missing column(s): " + missing.join(", "));
+          return;
+        }
 
-      // Apply defaults on first load
-      chooseDefaultsIfEmpty();
+        // Reduce and precompute search text for speed
+        rows = all.map(r => {
+          const searchBlob = (
+            norm(r.MatterID) + " " +
+            norm(r.Clients) + " " +
+            norm(r.Subject) + " " +
+            norm(r.Subject2)
+          ).toLowerCase();
 
-      hintEl.textContent = `Loaded ${rows.length} rows.`;
-      render();
-    }).catch(e => {
-      setErr("fetchSelectedTable failed: " + (e && e.message ? e.message : e));
-      hintEl.textContent = "Check access level and Select Data.";
-    });
+          return {
+            id: r.id,
+            MTR_YEAR: r.MTR_YEAR,
+            Status: r.Status,
+            Lawyer: r.Lawyer,
+            Mtr_Type: r.Mtr_Type,
+            _search: searchBlob
+          };
+        });
+
+        hintEl.textContent = `Loaded ${rows.length} rows`;
+        chooseDefaultsIfEmpty();
+        renderOptions();
+      })
+      .catch(e => {
+        hintEl.textContent = "Load failed";
+        setErr("fetchSelectedTable failed: " + (e && e.message ? e.message : e));
+      });
   </script>
 </body>
 </html>
